@@ -7,7 +7,7 @@ Enter specific keywords to crawl google news
 ### Getting started
 
 ```python
-from news_crawler import Crawler() 
+from news_crawler import Crawler
 c = Crawler()
 c.crawl_news("華碩", pages=2,timeout=3, time_sleep=5 )
 c.get_data()
