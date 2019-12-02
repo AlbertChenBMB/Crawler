@@ -13,5 +13,7 @@ c.crawl_news("華碩",2)
 c.get_data()
 ```
 
-![](C:\Users\User\Documents\GitHub\Crawler\image\news-crawler.jpg)
+![](<https://github.com/vbjc5275/Crawler/blob/master/image/news-crawler.jpg>)
+
+
 
