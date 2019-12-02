@@ -29,11 +29,13 @@ class Crawler(object):
     def __init__(self):
         """以空清單初始化新聞集合"""
         self.news_list = []
+        self.error_log = {}
         self.crawling = False
         self.PROXY_IPS = ['43.247.132.52:3129', '88.118.134.214:38662',"212.56.218.90:48047","59.126.108.147:49480"]
         self.USER_AGENT = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'}
         self.NEWS_URL = "https://www.google.com/search?q={}&tbm=nws&start={}" 
-        self.error_link = []
+        
+    
     def crawl_news(self,keyword, pages, timeout=3):
         assert not self.crawling, "Crawling already taking place"
         self.crawling = True
@@ -53,10 +55,13 @@ class Crawler(object):
             time_list = [time.text for time in soup.find_all('span',class_='f nsa fwzPFf')]
             
             for i in range(len(title_list)):
-                content = self.get_news_content(url_list[i],source_list[i])
+                url = url_list[i]
+                content = self.get_news_content(url ,source_list[i])
                 if content:
-                    news = News(keyword, url_list[i], title_list[i], time_list[i], content, source_list[i])
+                    news = News(keyword, url, title_list[i], time_list[i], content, source_list[i])
                     self.news_list.append(news)
+                else:
+                    self.error_log[url] = "cannot find content"
             time.sleep(5)
         self.crawling = False
         
@@ -79,6 +84,7 @@ class Crawler(object):
                 session.mount('https://', adapter)
                 response = session.get(url,headers=self.USER_AGENT,verify = False)
             except:
+                self.error_log[url] = "invalid link"
                 return None
         
         return BeautifulSoup(response.text, 'html.parser') if response.status_code == 200 else None
@@ -102,7 +108,7 @@ class Crawler(object):
                 ps_tag = div_tag.find_all('p')
     
             elif source == "自由時報電子報":
-                div_tag = soup.find('div',class_="text boxTitle boxText")
+                div_tag = soup.find('div',class_="cont boxTitle")
                 ps_tag = div_tag.find_all('p')
     
             elif source == "udn 聯合新聞網":
@@ -140,10 +146,6 @@ class Crawler(object):
             elif source == "世界日報":
                 div_tag = soup.find('div',class_ = 'post-content')
                 ps_tag = table_tag.find_all('p')    
-                
-            elif source == "4Gamers":
-                div_tag = soup.find(id="news-article-contents0")
-                ps_tag = div_tag.find_all('p')
     
             elif source == "明報OL網 (新聞發布)":
                 div_tag = soup.find(id="article_content line_1_5em")
@@ -155,11 +157,11 @@ class Crawler(object):
             elif source == "ELLE 台灣 (新聞發布)":
                 div_tag = soup.find("div", class_="listicle-body-content")
                 ps_tag = div_tag.find_all('p')
-    
+                
             else:
                  ps_tag = soup.find_all('p')
         except:
-            self.error_link.append(url)
+            self.error_log[url] = "cannot find content"
             print("cannot find content:",url)
             return None
  
@@ -200,8 +202,18 @@ class Crawler(object):
                                  "source":source_list})
             
 c = Crawler()
-c.crawl_news("香港",2)
+c.crawl_news("華碩",2)
 c.news_list
+
 data = c.get_data(type_="dataframe")
 
+
+import requests
+from bs4 import BeautifulSoup
+url = "https://www.4gamers.com.tw/news/detail/40896/rog-beryl-gaming-pc-review"
+response = requests.get(url=url)
+soup = BeautifulSoup(response.text, 'html.parser')
+div_tag = soup.find("article",id="news-article-contents")
+ps_tag = soup.find_all('p')                 
+                
 
