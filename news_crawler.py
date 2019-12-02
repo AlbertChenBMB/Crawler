@@ -24,7 +24,6 @@ class News:
         self.content = content
         self.source = source
 
-
 class Crawler(object):   
     def __init__(self):
         """以空清單初始化新聞集合"""
@@ -34,9 +33,8 @@ class Crawler(object):
         self.PROXY_IPS = ['43.247.132.52:3129', '88.118.134.214:38662',"212.56.218.90:48047","59.126.108.147:49480"]
         self.USER_AGENT = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'}
         self.NEWS_URL = "https://www.google.com/search?q={}&tbm=nws&start={}" 
-        
-    
-    def crawl_news(self,keyword, pages, timeout=3):
+           
+    def crawl_news(self,keyword, pages=1, timeout=3, time_sleep=5):
         assert not self.crawling, "Crawling already taking place"
         self.crawling = True
 
@@ -62,7 +60,7 @@ class Crawler(object):
                     self.news_list.append(news)
                 else:
                     self.error_log[url] = "cannot find content"
-            time.sleep(5)
+            time.sleep(time_sleep)
         self.crawling = False
         
     def request_and_get_soup(self,url):
@@ -75,7 +73,6 @@ class Crawler(object):
                         verify = False
                 )
         except:
-            print("invalid link:",url)
             try:
                 session = requests.Session()
                 retry = Retry(connect=3, backoff_factor=0.5)
@@ -85,11 +82,13 @@ class Crawler(object):
                 response = session.get(url,headers=self.USER_AGENT,verify = False)
             except:
                 self.error_log[url] = "invalid link"
+                print("invalid link:",url)
                 return None
         
         return BeautifulSoup(response.text, 'html.parser') if response.status_code == 200 else None
     
     def get_news_content(self,url,source):
+        """Parsing web pages for different news sources"""
         soup = self.request_and_get_soup(url)
         if not soup:
             return None
@@ -161,59 +160,21 @@ class Crawler(object):
             else:
                  ps_tag = soup.find_all('p')
         except:
-            self.error_log[url] = "cannot find content"
-            print("cannot find content:",url)
+            self.error_log[url] = "No news content found"
+            print("No news content found:",url)
             return None
  
-        return " ".join([p.text for p in ps_tag])
+        return " ".join([p.text.strip() for p in ps_tag])
         
-    def get_data(self,type_="json"):
-        if type_ == "json":
-            data =  []
-            for news in self.news_list:
-                data.append({"keyword":news.keyword,
-                             "url":news.url,
-                             "title":news.title,
-                             "time":news.time,
-                             "content":news.content,
-                             "source":news.source})
-            return data
-        
-        elif type_ == "dataframe":
-            keyword_list = []
-            url_list = []
-            title_list = []
-            time_list = []
-            content_list = []
-            source_list = []
+    def get_data(self):
+        """return news collection"""
+        return pd.DataFrame({"keyword":[news.keyword for news in self.news_list],
+                             "url":[news.url for news in self.news_list],
+                             "title":[news.title for news in self.news_list],
+                             "time":[news.time for news in self.news_list],
+                             "content":[news.content for news in self.news_list],
+                             "source":[news.source for news in self.news_list]})
+    def get_error_log(self):
+        """return error log"""
+        return self.error_log
             
-            for news in self.news_list:
-                keyword_list.append(news.keyword)
-                url_list.append(news.url)
-                title_list.append(news.title)
-                time_list.append(news.time)
-                content_list.append(news.content)
-                source_list.append(news.source)
-            return pd.DataFrame({"keyword":keyword_list,
-                                 "url":url_list,
-                                 "title":title_list,
-                                 "time":time_list,
-                                 "content":content_list,
-                                 "source":source_list})
-            
-c = Crawler()
-c.crawl_news("華碩",2)
-c.news_list
-
-data = c.get_data(type_="dataframe")
-
-
-import requests
-from bs4 import BeautifulSoup
-url = "https://www.4gamers.com.tw/news/detail/40896/rog-beryl-gaming-pc-review"
-response = requests.get(url=url)
-soup = BeautifulSoup(response.text, 'html.parser')
-div_tag = soup.find("article",id="news-article-contents")
-ps_tag = soup.find_all('p')                 
-                
-

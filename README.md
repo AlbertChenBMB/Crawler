@@ -1,5 +1,17 @@
 # Crawler
-這是一個專門放置爬蟲的repository
+This is a repository for crawlers.
 
 ## news_crawler
-輸入特定關鍵字，便會抓取google news的新聞
+Enter specific keywords to crawl google news
+
+### Getting started
+
+```python
+from news_crawler import Crawler() 
+c = Crawler()
+c.crawl_news("華碩",2)
+c.get_data()
+```
+
+![](C:\Users\User\Documents\GitHub\Crawler\image\news-crawler.jpg)
+
