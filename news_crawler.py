@@ -26,7 +26,7 @@ class News:
 
 class Crawler(object):   
     def __init__(self):
-        """以空清單初始化新聞集合"""
+        """Initialize the news collection"""
         self.news_list = []
         self.error_log = {}
         self.crawling = False
