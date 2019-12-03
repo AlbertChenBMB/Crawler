@@ -45,7 +45,6 @@ class Crawler(object):
             if not soup:
                 continue
 
-            #以 CSS 的 class 抓出各類頭條新聞
             h3s = soup.find_all('h3')
             title_list = [h3.text for h3 in h3s]
             url_list = [h3.find('a').get('href') for h3 in h3s]
