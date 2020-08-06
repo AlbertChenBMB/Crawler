@@ -6,6 +6,7 @@ Created on Sun Aug  2 07:06:38 2020
 """
 import warnings
 import requests
+from openpyxl import load_workbook
 from bs4 import BeautifulSoup
 from datetime import datetime,timedelta
 import time
@@ -93,7 +94,6 @@ def record_to_excel(ws,row,daily_quotes):
         ws[f"K{record_row}"] = int(quotes["normal"][11])
         
 #日期
-from openpyxl import load_workbook
 wb = load_workbook("options.xlsx")
 ws = wb[wb.sheetnames[0]]
 last_date_row,last_date = get_last_date(ws)
