@@ -108,6 +108,5 @@ if date_list:
 else:
     print("Already up to date")
     
-#wb.save(Config["file_path"])
 print("OK")
 
